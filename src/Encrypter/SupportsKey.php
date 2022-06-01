@@ -1,18 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\Crypt\Encrypter;
 
 use Drewlabs\Crypt\Key as CryptKey;
 use Drewlabs\Crypt\Utils;
-use Exception;
-use LogicException;
 
 /**
  * @internal
  */
 trait SupportsKey
 {
-
     /**
      * The encryption key.
      *
@@ -27,27 +35,26 @@ trait SupportsKey
      */
     private $cipher;
 
-
     private function setEncryptionProperties(Key $key)
     {
         // If the key starts with "base64:", we will need to decode the key before handing
         // it off to the encrypter. Keys may be base-64 encoded for presentation and we
         // want to make sure to convert them back to the raw bytes before encrypting.
-        if (Utils::strStartsWith($key_ = (string)$key, 'base64:')) {
-            $key_ = base64_decode(substr($key_, strlen('base64:')));
+        if (Utils::strStartsWith($key_ = (string) $key, 'base64:')) {
+            $key_ = base64_decode(substr($key_, \strlen('base64:')), true);
         }
         if ($this->supported($key_, $cipher = $key->cipher())) {
             $this->key = $key_;
             $this->cipher = $cipher;
         } else {
-            throw new Exception('The only supported ciphers are aes-128-cbc and aes-128-cbc, aes-128-gcm, aes-256-gcm with the correct key lengths.');
+            throw new \Exception('The only supported ciphers are aes-128-cbc and aes-128-cbc, aes-128-gcm, aes-256-gcm with the correct key lengths.');
         }
     }
 
     /**
-     * 
-     * @return string 
-     * @throws LogicException 
+     * @throws \LogicException
+     *
+     * @return string
      */
     private function createIV()
     {
@@ -60,22 +67,22 @@ trait SupportsKey
     /**
      * Determine if the given key and cipher combination is valid.
      *
-     * @param  string  $key
-     * @param  string  $cipher
+     * @param string $key
+     * @param string $cipher
+     *
      * @return bool
      */
     private function supported($key, $cipher)
     {
-        if (!in_array($cipher = strtolower($cipher), array_keys($this->getSupportedCiphers()))) {
+        if (!\in_array($cipher = strtolower($cipher), array_keys($this->getSupportedCiphers()), true)) {
             return false;
         }
+
         return mb_strlen($key, '8bit') === $this->getSupportedCiphers()[$cipher]['size'] ?? null;
     }
 
-
     /**
-     * 
-     * @return ((int|false)[]|(int|true)[])[] 
+     * @return ((int|false)[]|(int|true)[])[]
      */
     private function getSupportedCiphers()
     {

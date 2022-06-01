@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Drewlabs\Crypt\Passwords;
 
 use Drewlabs\Crypt\Contracts\HashManager;
-use InvalidArgumentException;
 
 class HashFactory
 {
@@ -26,21 +25,28 @@ class HashFactory
     private $instance;
 
     /**
-     * 
-     * @return self 
+     * @return self
      */
     private function __construct()
     {
     }
 
     /**
-     * Creates an instance of the factory object
-     * 
-     * @return HashFactory 
+     * @return void
+     */
+    public function __destruct()
+    {
+        unset($this->instance);
+    }
+
+    /**
+     * Creates an instance of the factory object.
+     *
+     * @return HashFactory
      */
     public static function new()
     {
-        return new self;
+        return new self();
     }
 
     /**
@@ -53,18 +59,18 @@ class HashFactory
         $type = $type ?: 'bcrypt';
         switch (strtolower($type)) {
             case 'bcrypt':
-            case PASSWORD_BCRYPT:
+            case \PASSWORD_BCRYPT:
                 $this->instance = new BCrypt();
                 break;
             case 'argon2':
-            case PASSWORD_ARGON2I:
+            case \PASSWORD_ARGON2I:
                 $this->instance = new Argon2();
                 break;
             case 'md5':
                 $this->instance = new MD5();
                 break;
             default:
-                throw new InvalidArgumentException('Unimplemented hashing algorithm');
+                throw new \InvalidArgumentException('Unimplemented hashing algorithm');
         }
 
         return $this;
@@ -72,20 +78,11 @@ class HashFactory
 
     /**
      * Resolve the constructed instance.
-     * 
+     *
      * @return HashManager
      */
     public function resolve()
     {
         return $this->instance;
-    }
-
-    /**
-     * 
-     * @return void 
-     */
-    public function __destruct()
-    {
-        unset($this->instance);
     }
 }

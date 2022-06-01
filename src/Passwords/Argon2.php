@@ -15,7 +15,6 @@ namespace Drewlabs\Crypt\Passwords;
 
 use Drewlabs\Crypt\Contracts\HashManager;
 
-/** @package Drewlabs\Crypt */
 class Argon2 extends HashBase implements HashManager
 {
     /**

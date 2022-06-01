@@ -15,8 +15,6 @@ namespace Drewlabs\Crypt\HMAC;
 
 use Drewlabs\Crypt\Key;
 use Drewlabs\Crypt\Utils;
-use InvalidArgumentException;
-use LogicException;
 use Tuupola\Base62;
 
 final class Hash
@@ -37,32 +35,12 @@ final class Hash
     private $hash;
 
     /**
-     * Protected against class construcion using new
+     * Protected against class construcion using new.
      *
      * @return self
      */
     private function __construct()
     {
-    }
-
-    /**
-     * Creates an instance of the HMAC Hash object
-     * 
-     * @param string $alg 
-     * @param null|string $key 
-     * @return self 
-     * @throws InvalidArgumentException 
-     * @throws LogicException 
-     */
-    public static function new($alg = 'sha256', ?string $key = null)
-    {
-        if (!\in_array($alg, $supported_algs = hash_hmac_algos(), true)) {
-            throw new \InvalidArgumentException("$alg is not in the support list of algorithms, Supported values are " . (implode(', ', $supported_algs)));
-        }
-        $self = new self;
-        $self->alg = $alg;
-        $self->key = $key ?? Key::new();
-        return $self;
     }
 
     /**
@@ -81,6 +59,28 @@ final class Hash
     }
 
     /**
+     * Creates an instance of the HMAC Hash object.
+     *
+     * @param string $alg
+     *
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     *
+     * @return self
+     */
+    public static function new($alg = 'sha256', ?string $key = null)
+    {
+        if (!\in_array($alg, $supported_algs = hash_hmac_algos(), true)) {
+            throw new \InvalidArgumentException("$alg is not in the support list of algorithms, Supported values are ".(implode(', ', $supported_algs)));
+        }
+        $self = new self();
+        $self->alg = $alg;
+        $self->key = $key ?? Key::new();
+
+        return $self;
+    }
+
+    /**
      * Creates a class instance from a string representation of the object.
      *
      * @return self
@@ -89,7 +89,7 @@ final class Hash
     {
         $config = Utils::after('$', Utils::before('$.', $hash));
         [$alg, $key] = static::getOptions($config);
-        $hash = Utils::after('$' . $config . '$.', $hash);
+        $hash = Utils::after('$'.$config.'$.', $hash);
         $self = static::new($alg, $key);
         $self->hash($hash);
 

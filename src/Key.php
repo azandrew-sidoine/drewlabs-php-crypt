@@ -45,6 +45,7 @@ class Key
     {
         $self = new self();
         $self = $self->setKey(static::createIv($length));
+
         return $self;
     }
 

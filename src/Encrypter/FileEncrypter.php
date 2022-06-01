@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\Crypt\Encrypter;
 
 use Drewlabs\Crypt\Contracts\Encrypter;
@@ -11,10 +22,6 @@ use Drewlabs\Crypt\Exceptions\IOException;
 use Drewlabs\Crypt\Exceptions\MetadataException;
 use Drewlabs\Crypt\Utils;
 
-/**
- * 
- * @package Drewlabs\Crypt\Encrypter
- */
 final class FileEncrypter implements Encrypter
 {
     use SupportsKey;
@@ -25,58 +32,63 @@ final class FileEncrypter implements Encrypter
      */
     private const FILE_ENCRYPTION_BLOCKS = 255;
 
-
     /**
-     * Source file handle
-     * 
+     * Source file handle.
+     *
      * @var resource|false
      */
     private $handle;
 
     /**
-     * Destination file handle
-     * 
+     * Destination file handle.
+     *
      * @var resource|false
      */
     private $dstHandle;
 
     /**
-     * 
      * @var string
      */
     private $writePath;
 
-
     /**
-     * Private constructor that prevent creating object using new
-     * 
-     * @return self 
+     * Private constructor that prevent creating object using new.
+     *
+     * @return self
      */
     private function __construct()
     {
     }
 
+    public function __destruct()
+    {
+        $this->closeHandles();
+    }
+
     /**
      * Create a new encrypter instance.
-     * 
-     * @param EncrypterKey $key 
-     * @param string|resource|string $writePath 
-     * @return self 
-     * @throws Exception 
+     *
+     * @param string|resource|string $writePath
+     *
+     * @throws Exception
+     *
+     * @return self
      */
     public static function new(EncrypterKey $key, $writePath)
     {
-        $self = new self;
+        $self = new self();
         $self->setEncryptionProperties($key);
         $self->writePath = $writePath;
+
         return $self;
     }
 
     /**
-     * Set path to which the encrypted or decripted content is written 
-     * 
-     * @param mixed $path 
-     * @return void 
+     * Set path to which the encrypted or decripted content is written.
+     *
+     * @param mixed $path
+     *
+     * @return void
      */
     public function writeTo(string $path)
     {
@@ -90,7 +102,7 @@ final class FileEncrypter implements Encrypter
         // resources using class destructors
         $this->handle = $this->openSourceFile($value);
         $this->dstHandle = $this->openDestFile();
-        if (!is_resource($this->handle) || !is_resource($this->dstHandle)) {
+        if (!\is_resource($this->handle) || !\is_resource($this->dstHandle)) {
             throw new EncryptionException('Encryption Error: Fail to open source or destination files');
         }
         // Put the initialzation vector to the beginning of the destination file
@@ -103,12 +115,12 @@ final class FileEncrypter implements Encrypter
             if (false === $plain) {
                 throw new EncryptionException("Encryption Error: Failed to read from source file at $value");
             }
-            $cipher = @openssl_encrypt($plain, $this->cipher, $this->key, OPENSSL_RAW_DATA, $vector);
+            $cipher = @openssl_encrypt($plain, $this->cipher, $this->key, \OPENSSL_RAW_DATA, $vector);
             // Because Amazon S3 will randomly return smaller sized chunks:
             // Check if the size read from the stream is different than the requested chunk size
             // In this scenario, request the chunk again, unless this is the last chunk
             if (
-                strlen($plain) !== 16 * self::FILE_ENCRYPTION_BLOCKS
+                \strlen($plain) !== 16 * self::FILE_ENCRYPTION_BLOCKS
                 && $index + 1 < $chunkSize
             ) {
                 fseek($this->handle, 16 * self::FILE_ENCRYPTION_BLOCKS * $index);
@@ -117,9 +129,10 @@ final class FileEncrypter implements Encrypter
             // Use the first 16 bytes of the ciphertext as the next initialization vector
             $vector = substr($cipher, 0, 16);
             fwrite($this->dstHandle, $cipher);
-            $index++;
+            ++$index;
         }
         $this->closeHandles();
+
         return true;
     }
 
@@ -130,7 +143,7 @@ final class FileEncrypter implements Encrypter
         // resources using class destructors
         $this->handle = $this->openSourceFile($encrypted);
         $this->dstHandle = $this->openDestFile();
-        if (!is_resource($this->handle) || !is_resource($this->dstHandle)) {
+        if (!\is_resource($this->handle) || !\is_resource($this->dstHandle)) {
             throw new DecryptionException('Decryption Error: Fail to open source or destination files');
         }
 
@@ -144,51 +157,54 @@ final class FileEncrypter implements Encrypter
             if (false === $cipher) {
                 throw new DecryptionException("Decryption Error: Failed to read from source file at $encrypted");
             }
-            $plain = openssl_decrypt($cipher, $this->cipher, $this->key, OPENSSL_RAW_DATA, $vector);
+            $plain = openssl_decrypt($cipher, $this->cipher, $this->key, \OPENSSL_RAW_DATA, $vector);
             // Because Amazon S3 will randomly return smaller sized chunks:
             // Check if the size read from the stream is different than the requested chunk size
             // In this scenario, request the chunk again, unless this is the last chunk
             if (
-                strlen($cipher) !== 16 * (self::FILE_ENCRYPTION_BLOCKS + 1)
+                \strlen($cipher) !== 16 * (self::FILE_ENCRYPTION_BLOCKS + 1)
                 && $index + 1 < $chinkSize
             ) {
                 fseek($this->handle, 16 + 16 * (self::FILE_ENCRYPTION_BLOCKS + 1) * $index);
                 continue;
             }
 
-            if ($plain === false) {
+            if (false === $plain) {
                 throw new DecryptionException('Decryption failed');
             }
             // Get the the first 16 bytes of the ciphertext as the next initialization vector
             $vector = substr($cipher, 0, 16);
             fwrite($this->dstHandle, $plain);
-            $index++;
+            ++$index;
         }
         $this->closeHandles();
+
         return true;
     }
 
     /**
-     * 
-     * @return resource|false 
-     * @throws Exception 
+     * @throws Exception
+     *
+     * @return resource|false
      */
     private function openDestFile()
     {
-        if (is_resource($this->writePath)) {
+        if (\is_resource($this->writePath)) {
             return $this->writePath;
         }
         if (($fd = fopen($this->writePath, 'w')) === false) {
             throw new IOException('Cannot open file for writing', $this->writePath);
         }
+
         return $fd;
     }
 
     /**
-     * 
-     * @param mixed $path 
-     * @return resource|false 
-     * @throws Exception 
+     * @param mixed $path
+     *
+     * @throws Exception
+     *
+     * @return resource|false
      */
     private function openSourceFile($path)
     {
@@ -196,16 +212,17 @@ final class FileEncrypter implements Encrypter
         if (($fd = @fopen($path, 'r', false, stream_context_create($opts))) === false) {
             throw new IOException("Can not open file located at path $path", $path);
         }
+
         return $fd;
     }
 
     /**
      * Extracts the file size information from the file path.
-     * 
-     * @param string $path 
-     * @return int|false 
-     * @throws FileNotFoundException 
-     * @throws MetadataException 
+     *
+     * @throws FileNotFoundException
+     * @throws MetadataException
+     *
+     * @return int|false
      */
     private function getFileSize(string $path)
     {
@@ -215,24 +232,19 @@ final class FileEncrypter implements Encrypter
         if (($result = @filesize($path)) === false) {
             throw new MetadataException($path, error_get_last()['message'] ?? '', 'filesize');
         }
+
         return $result;
     }
 
     /**
-     * 
-     * @return void 
+     * @return void
      */
     private function closeHandles()
     {
         foreach ([$this->dstHandle, $this->handle] as $value) {
-            if (is_resource($value)) {
+            if (\is_resource($value)) {
                 fclose($value);
             }
         }
-    }
-
-    public function __destruct()
-    {
-        $this->closeHandles();
     }
 }

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Drewlabs\Crypt;
 
-use InvalidArgumentException;
 use Tuupola\Base62;
 
 class Utils
@@ -71,11 +70,11 @@ class Utils
      * Compute string representation of object|array|string variables.
      *
      * @param string|object|array $value
-     * 
-     * @param mixed $value 
-     * @param int $flags 
-     * @return string 
-     * @throws InvalidArgumentException 
+     * @param mixed               $value
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return string
      */
     public static function stringify($value, int $flags = 0)
     {
@@ -83,10 +82,10 @@ class Utils
         $is_array = \is_array($value);
         $is_string = \is_string($value);
         if (!($is_object || $is_string || $is_array)) {
-            throw new \InvalidArgumentException('Expected string, array or object types, got ' . (null !== $value && \is_object($value) ? \get_class($value) : \gettype($value)));
+            throw new \InvalidArgumentException('Expected string, array or object types, got '.(null !== $value && \is_object($value) ? \get_class($value) : \gettype($value)));
         }
         if ($is_string) {
-            return sprintf("str:%s", $value);
+            return sprintf('str:%s', $value);
         }
 
         if ($is_object && method_exists($value, 'toArray')) {
@@ -105,15 +104,15 @@ class Utils
             $arr = array_merge($value);
         }
 
-        return sprintf("json:%s", json_encode(static::recursiveksort($arr), $flags));
+        return sprintf('json:%s', json_encode(static::recursiveksort($arr), $flags));
     }
 
     /**
-     * Parse user string
-     * 
-     * @param string $string 
-     * @param array|bool $options 
-     * @return mixed 
+     * Parse user string.
+     *
+     * @param array|bool $options
+     *
+     * @return mixed
      */
     public static function parse(string $string, $options = [])
     {
@@ -123,19 +122,66 @@ class Utils
 
         if (static::strStartsWith($string, 'json:')) {
             $encoded = static::after('json:', $string);
-            $options =  is_bool($options) ? [
+            $options = \is_bool($options) ? [
                 'array' => true,
                 'depth' => 512,
-                'flags' => 0
+                'flags' => 0,
             ] : $options ?? [];
+
             return json_decode($encoded, $options['array'] ?? true, $options['depth'] ?? 512, $options['flags'] ?? 0);
         }
 
         if (static::strStartsWith($string, 'serialize:')) {
             $encoded = static::after('serialize:', $string);
-            return unserialize($encoded, is_bool($options) ? [] : $options ?? []);
+
+            return unserialize($encoded, \is_bool($options) ? [] : $options ?? []);
         }
+
         return json_decode($string);
+    }
+
+    /**
+     * Returns true if $haystack starts with $needle substring.
+     *
+     * @return bool
+     */
+    public static function strStartsWith(string $haystack, string $needle)
+    {
+        if (\function_exists('str_starts_with')) {
+            return str_starts_with($haystack, $needle);
+        }
+
+        return 0 === strncmp($haystack, $needle, \strlen($needle));
+    }
+
+    /**
+     * @param mixed $data
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return string
+     */
+    public static function base62Encode($data)
+    {
+        if (null === $data) {
+            throw new \InvalidArgumentException('Data to encode must not equal null');
+        }
+
+        return (new Base62())->encode($data);
+    }
+
+    /**
+     * @throws \InvalidArgumentException
+     *
+     * @return string
+     */
+    public static function base62Decode(string $encoded)
+    {
+        if (null === $encoded) {
+            throw new \InvalidArgumentException('Data to encode must not equal null');
+        }
+
+        return (new Base62())->decode($encoded);
     }
 
     /**
@@ -163,49 +209,5 @@ class Utils
         $func($value);
         // endregion Internal function
         return $value;
-    }
-
-    /**
-     * Returns true if $haystack starts with $needle substring
-     * 
-     * @param string $haystack 
-     * @param string $needle 
-     * @return bool 
-     */
-    public static function strStartsWith(string $haystack, string $needle)
-    {
-        if (function_exists('str_starts_with')) {
-            return str_starts_with($haystack, $needle);
-        }
-        return 0 === strncmp($haystack, $needle, \strlen($needle));
-    }
-
-
-    /**
-     * 
-     * @param mixed $data 
-     * @return string 
-     * @throws InvalidArgumentException 
-     */
-    public static function base62Encode($data)
-    {
-        if (null === $data) {
-            throw new InvalidArgumentException('Data to encode must not equal null');
-        }
-        return (new Base62())->encode($data);
-    }
-
-    /**
-     * 
-     * @param string $encoded 
-     * @return string 
-     * @throws InvalidArgumentException 
-     */
-    public static function base62Decode(string $encoded)
-    {
-        if (null === $encoded) {
-            throw new InvalidArgumentException('Data to encode must not equal null');
-        }
-        return (new Base62())->decode($encoded);
     }
 }
