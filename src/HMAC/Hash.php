@@ -17,6 +17,7 @@ use Drewlabs\Crypt\Key;
 use Drewlabs\Crypt\Utils;
 use InvalidArgumentException;
 use LogicException;
+use RuntimeException;
 use Tuupola\Base62;
 
 final class Hash
@@ -187,6 +188,17 @@ final class Hash
     public function getAlg()
     {
         return null !== $this->alg ? (string) $this->alg : $this->alg;
+    }
+
+    /**
+     * Returns a stringify hash options that were used to compute the hash
+     * 
+     * @return string 
+     * @throws RuntimeException 
+     */
+    public function hashOptions()
+    {
+        return $this->stringifyConfigs();
     }
 
     /**
