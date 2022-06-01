@@ -3,3 +3,7 @@
 ## [0.1.4] 2022-06-01
 
 - Add support for nullable parameter to HMACHash::raw() method
+
+## [0.1.5] 2022-06-01
+
+- Added HMACHash::hashOptions()
