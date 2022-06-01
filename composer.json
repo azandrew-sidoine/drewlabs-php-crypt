@@ -1,0 +1,33 @@
+{
+    "name": "drewlabs/crypt",
+    "description": "Provides files encryption & Decryption, HMAC Hash object and Password Hashing using PHP password_hash, password_verify & hash_equals functions",
+    "keywords": [
+        "encryption",
+        "password",
+        "hash"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Drewlabs\\Crypt\\": "src/"
+        },
+        "files": [
+            "./functions.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "azandrew-sidoine",
+            "email": "asmyns.platonnas29@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require-dev": {
+        "phpunit/phpunit": "10.0.x-dev"
+    },
+    "require": {
+        "tuupola/base62": "3.x-dev"
+    }
+}

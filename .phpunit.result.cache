@@ -1,0 +1,1 @@
+{"version":1,"defects":{"HMACHashTest::test_hmac_hash_make":6,"HMACHashTest::test_hmac_hash_check":6},"times":{"HMACHashTest::test_hmac_hash_make":0.02,"HMACHashTest::test_hmac_hash_check":0.001}}
