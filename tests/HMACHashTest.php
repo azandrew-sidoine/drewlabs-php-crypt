@@ -12,6 +12,7 @@ declare(strict_types=1);
  */
 
 use Drewlabs\Crypt\HMAC\Hash as HMACHash;
+use Drewlabs\Crypt\Utils;
 use PHPUnit\Framework\TestCase;
 
 class HMACHashTest extends TestCase
@@ -31,7 +32,7 @@ class HMACHashTest extends TestCase
 
     public function test_hmac_hash_check_on_array()
     {
-        $hashed_value = HMACHash::new()->make([
+        $hash = HMACHash::new()->make([
             [
                 'weight' => '30pd',
                 'name' => 'Banana',
@@ -46,7 +47,22 @@ class HMACHashTest extends TestCase
             ],
         ])->__toString();
 
-        $this->assertTrue(HMACHash::raw($hashed_value)->check([
+        $this->assertTrue(HMACHash::raw($hash)->check([
+            [
+                'weight' => '30pd',
+                'name' => 'Banana',
+            ],
+            [
+                'name' => 'Orange',
+                'weight' => '10pd',
+            ],
+            [
+                'name' => 'Apple',
+                'weight' => '20pd',
+            ],
+        ]));
+        $options = Utils::after('$', Utils::before('$.', $hash));
+        $this->assertTrue(HMACHash::raw(Utils::after('$'.$options.'$.', $hash), $options)->check([
             [
                 'weight' => '30pd',
                 'name' => 'Banana',
@@ -61,7 +77,7 @@ class HMACHashTest extends TestCase
             ],
         ]));
 
-        $this->assertFalse(HMACHash::raw($hashed_value)->check([
+        $this->assertFalse(HMACHash::raw($hash)->check([
             [
                 'name' => 'Orange',
                 'weight' => '10pd',
@@ -76,7 +92,7 @@ class HMACHashTest extends TestCase
             ],
         ]));
 
-        $this->assertFalse(HMACHash::raw($hashed_value)->check([
+        $this->assertFalse(HMACHash::raw($hash)->check([
             [
                 'weight' => '30pd',
                 'name' => 'Banana',

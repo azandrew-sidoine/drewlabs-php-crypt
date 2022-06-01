@@ -15,6 +15,8 @@ namespace Drewlabs\Crypt\HMAC;
 
 use Drewlabs\Crypt\Key;
 use Drewlabs\Crypt\Utils;
+use InvalidArgumentException;
+use LogicException;
 use Tuupola\Base62;
 
 final class Hash
@@ -53,8 +55,6 @@ final class Hash
         if (!\is_string($this->hash)) {
             throw new \LogicException('Missing hashed content');
         }
-        var_dump(sprintf('%s.%s', $this->stringifyConfigs(), $this->hash));
-
         return sprintf('%s.%s', $this->stringifyConfigs(), $this->hash);
     }
 
@@ -80,16 +80,28 @@ final class Hash
         return $self;
     }
 
-    /**
+     /**
      * Creates a class instance from a string representation of the object.
-     *
-     * @return self
-     */
-    public static function raw(string $hash)
+      * 
+      * @param string $hash 
+      * @param null|string $options 
+      * @return Hash 
+      * @throws InvalidArgumentException 
+      * @throws LogicException 
+      */
+    public static function raw(string $hash, ?string $options = null)
     {
-        $config = Utils::after('$', Utils::before('$.', $hash));
-        [$alg, $key] = static::getOptions($config);
-        $hash = Utils::after('$'.$config.'$.', $hash);
+        // If the option is provided as a separate parameter, we simply use the provided option
+        // else we try to read the options from hash string
+        $options = $options ?? Utils::after('$', Utils::before('$.', $hash));
+        if (empty($options)) {
+            throw new InvalidArgumentException('hash mismatch');
+        }
+        [$alg, $key] = static::parseHashOptions($options);
+        // We check if the provided hash starts with the options definitions
+        // If not, we simply use the the entire hash as raw, else we trim the option definition from the entire hash
+        $hash = Utils::strStartsWith($hash, '$'.$options.'$.') ? Utils::after('$'.$options.'$.', $hash) : $hash;
+        // We use the key and algorithm to create a new instance
         $self = static::new($alg, $key);
         $self->hash($hash);
 
@@ -196,7 +208,7 @@ final class Hash
      *
      * @return (string|null)[]
      */
-    private static function getOptions(string $string)
+    private static function parseHashOptions(string $string)
     {
         $key = $alg = null;
         $exploded = explode(';', (new Base62())->decode($string));
