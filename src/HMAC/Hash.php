@@ -56,7 +56,7 @@ final class Hash
         if (!\is_string($this->hash)) {
             throw new \LogicException('Missing hashed content');
         }
-        return sprintf('%s.%s', $this->stringifyConfigs(), $this->hash);
+        return sprintf('%s.%s', $this->hashOptions(), $this->hash);
     }
 
     /**
