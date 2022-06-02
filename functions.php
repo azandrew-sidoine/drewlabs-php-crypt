@@ -15,7 +15,7 @@ namespace Drewlabs\Crypt\Proxy;
 
 use Drewlabs\Crypt\Contracts\HashManager;
 
-use Drewlabs\Crypt\Passwords\HashFactory;
+use Drewlabs\Crypt\Passwords\Factory;
 
 if (!\function_exists('usePasswordManager')) {
 
@@ -28,6 +28,6 @@ if (!\function_exists('usePasswordManager')) {
      */
     function usePasswordManager(string $type = \PASSWORD_BCRYPT)
     {
-        return HashFactory::new()->make($type)->resolve();
+        return Factory::new()->make($type)->resolve();
     }
 }

@@ -15,7 +15,7 @@ namespace Drewlabs\Crypt\Passwords;
 
 use Drewlabs\Crypt\Contracts\HashManager;
 
-class HashFactory
+class Factory
 {
     /**
      * Hash instance.
@@ -42,7 +42,7 @@ class HashFactory
     /**
      * Creates an instance of the factory object.
      *
-     * @return HashFactory
+     * @return Factory
      */
     public static function new()
     {
