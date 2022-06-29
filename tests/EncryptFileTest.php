@@ -28,8 +28,8 @@ class EncryptFileTest extends TestCase
     public function test_decrypt_function()
     {
         $crypt = Crypt::new('base64:'.base64_encode('SuperRealSecretA'));
-        $result = $crypt->decryptBlob(__DIR__.'/storage/text.txt.enc', __DIR__.'/storage/decrypted/text.txt');
-        $crypt->decryptBlob(__DIR__.'/storage/ng-connect.png.enc', __DIR__.'/storage/decrypted/ng-connect.png');
+        $result = $crypt->decryptBlob(__DIR__.'/storage/text.txt.enc', __DIR__.'/storage/text.decrypt.txt');
+        $crypt->decryptBlob(__DIR__.'/storage/ng-connect.png.enc', __DIR__.'/storage/ng-connect.decrypt.png');
         $this->assertTrue($result);
         $this->assertTrue(file_get_contents(__DIR__.'/storage/text.txt') === file_get_contents(__DIR__.'/storage/text.txt'));
     }

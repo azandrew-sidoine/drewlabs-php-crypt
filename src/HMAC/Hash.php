@@ -94,7 +94,9 @@ final class Hash
     {
         // If the option is provided as a separate parameter, we simply use the provided option
         // else we try to read the options from hash string
-        $options = $options ?? Utils::after('$', Utils::before('$.', $hash));
+        // **Note** If the provided $options contains trailing $ symbol, we first trim the 
+        // $ symbol from the starts and the end of the options before proceeding
+        $options = trim($options ?? Utils::after('$', Utils::before('$.', $hash)), '$');
         if (empty($options)) {
             throw new InvalidArgumentException('hash mismatch');
         }
