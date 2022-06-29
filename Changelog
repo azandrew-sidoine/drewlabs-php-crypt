@@ -7,3 +7,7 @@
 ## [0.1.5] 2022-06-01
 
 - Added HMACHash::hashOptions()
+
+## [0.2.1] 2022-06-29
+
+- Added implementation that trim off the $ from $option parameter passed to Hash::raw() method calls
